@@ -82,10 +82,10 @@ jobs:
             aws-region: << parameters.aws-region >>
         - kubernetes/create-or-update-resource:
             resource-file-path: "deployments/deployment.yml"
-            get-rollout-status: true
             resource-name: deployment/capstone
-        - kubernetes/create-or-update-resource:
-            resource-file-path: "deployments/deployment.yml"
+            #get-rollout-status: true
+        #- kubernetes/create-or-update-resource:
+        #    resource-file-path: "deployments/deployment.yml"
 
     test-application:
         executor: aws-eks/python3
