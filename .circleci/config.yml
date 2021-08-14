@@ -4,8 +4,8 @@ orbs:
   aws-cli: circleci/aws-cli@2.0.3
   #aws-eks: circleci/aws-eks@0.2.3
   aws-eks: circleci/aws-eks@1.1.0
-  aws-ecr: circleci/aws-ecr@3.1.0
-  #aws-ecr: circleci/aws-ecr@7.0.0
+  #aws-ecr: circleci/aws-ecr@3.1.0
+  aws-ecr: circleci/aws-ecr@7.0.0
   #kubernetes: circleci/kubernetes@0.4.0
   kubernetes: circleci/kubernetes@0.12.0
 
@@ -147,7 +147,7 @@ workflows:
       - push-docker-image:
           requires:
             - "build-docker-image"
-      - aws-ecr/build_and_push_image:
+      - aws-ecr/build-and-push-image:
           name: build-and-push-image-ecr
           account-url: AWS_ECR_URL
           region: AWS_DEFAULT_REGION
