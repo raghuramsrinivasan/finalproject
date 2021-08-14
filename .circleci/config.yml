@@ -2,11 +2,8 @@ version: 2.1
 
 orbs:
   aws-cli: circleci/aws-cli@2.0.3
-  #aws-eks: circleci/aws-eks@0.2.3
   aws-eks: circleci/aws-eks@1.1.0
-  #aws-ecr: circleci/aws-ecr@3.1.0
   aws-ecr: circleci/aws-ecr@7.0.0
-  #kubernetes: circleci/kubernetes@0.4.0
   kubernetes: circleci/kubernetes@0.12.0
 
 jobs:
@@ -83,9 +80,6 @@ jobs:
         - kubernetes/create-or-update-resource:
             resource-file-path: "deployments/deployment.yml"
             resource-name: deployment/capstone
-            #get-rollout-status: true
-        #- kubernetes/create-or-update-resource:
-        #    resource-file-path: "deployments/deployment.yml"
 
     test-application:
         executor: aws-eks/python3
