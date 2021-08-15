@@ -2,6 +2,6 @@
 
 # Cloud DevOps - Nanodegree Capstone project
 
-**Git Repo**
+**Git Repo:**
 
 https://github.com/Hariprakash-devops/finalproject
