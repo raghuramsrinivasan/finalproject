@@ -34,8 +34,8 @@ jobs:
             name: Build Docker Image
             command: |
               export TAG=v${CIRCLE_BUILD_NUM}
-              export IMAGE_NAME=capstone
-              docker build -t hariprakashvk/$IMAGE_NAME:$TAG .
+              export IMAGE_NAME=capstonedemo
+              docker build -t sraghuraman27/$IMAGE_NAME:$TAG .
     push-docker-image:
       docker:
         - image: circleci/node:13.8.0
@@ -47,10 +47,10 @@ jobs:
             name: Push Docker Image to Docker Hub
             command: |
               export TAG=v${CIRCLE_BUILD_NUM}
-              export IMAGE_NAME=capstone
-              docker build -t hariprakashvk/$IMAGE_NAME:$TAG .
-              docker login -u hariprakashvk -p n789@ajk90-j 
-              docker push hariprakashvk/$IMAGE_NAME:$TAG
+              export IMAGE_NAME=capstonedemo
+              docker build -t sraghuraman27/$IMAGE_NAME:$TAG .
+              docker login -u sraghuraman27 -p Raghu!6224-j 
+              docker push sraghuraman27/$IMAGE_NAME:$TAG
     deploy-application:
       executor: aws-eks/python3
       parameters:
@@ -70,7 +70,7 @@ jobs:
           description: |
             AWS region
           type: string
-          default: "us-west-2"
+          default: "us-east-1"
       steps:
         - checkout
         - aws-eks/update-kubeconfig-with-authenticator:
@@ -141,40 +141,41 @@ workflows:
       - push-docker-image:
           requires:
             - "build-docker-image"
-      - aws-ecr/build-and-push-image:
-          name: build-and-push-image-ecr
-          account-url: AWS_ECR_ACCOUNT_URL
-          region: AWS_DEFAULT_REGION
-          repo: eks_orb_capstone_project
-          tag: ${CIRCLE_SHA1}
+#      - aws-ecr/build-and-push-image:
+#          name: build-and-push-image-ecr
+#          account-url: AWS_ECR_ACCOUNT_URL
+#          region: AWS_DEFAULT_REGION
+#          repo: eks_orb_capstone_project
+#          tag: ${CIRCLE_SHA1}
           #dockerfile: ~/project/Dockerfile
           #path: ~/project/
-      - aws-eks/create-cluster:
-          cluster-name: eks-orb-capstone-project-deployment-${CIRCLE_WORKFLOW_ID:0:7}
-          aws-region: $AWS_DEFAULT_REGION
-          requires:
-            - build-and-push-image-ecr
+#      - aws-eks/create-cluster:
+#          cluster-name: eks-orb-capstone-project-deployment-${CIRCLE_WORKFLOW_ID:0:7}
+#          aws-region: $AWS_DEFAULT_REGION
+#          requires:
+#            - build-and-push-image-ecr
       - deploy-application:
           cluster-name: eks-orb-capstone-project-deployment-${CIRCLE_WORKFLOW_ID:0:7}
           aws-region: $AWS_DEFAULT_REGION
           docker-image-name: "${AWS_ECR_ACCOUNT_URL}/eks_orb_capstone_project:${CIRCLE_SHA1}"
           version-info: "${CIRCLE_SHA1}"
           requires:
-            - aws-eks/create-cluster
+#            - aws-eks/create-cluster
+             - push-docker-image 
       - test-application:
           cluster-name: eks-orb-capstone-project-deployment-${CIRCLE_WORKFLOW_ID:0:7}
           aws-region: $AWS_DEFAULT_REGION
           expected-version-info: "${CIRCLE_SHA1}"
           requires:
             - deploy-application
-      - undeploy-application:
-          cluster-name: eks-orb-capstone-project-deployment-${CIRCLE_WORKFLOW_ID:0:7}
-          aws-region: $AWS_DEFAULT_REGION
-          requires:
-            - test-application
-      - aws-eks/delete-cluster:
-          cluster-name: eks-orb-capstone-project-deployment-${CIRCLE_WORKFLOW_ID:0:7}
-          aws-region: $AWS_DEFAULT_REGION
-          wait: true
-          requires:
-            - undeploy-application
+#      - undeploy-application:
+#          cluster-name: eks-orb-capstone-project-deployment-${CIRCLE_WORKFLOW_ID:0:7}
+#          aws-region: $AWS_DEFAULT_REGION
+#          requires:
+#            - test-application
+#      - aws-eks/delete-cluster:
+#          cluster-name: eks-orb-capstone-project-deployment-${CIRCLE_WORKFLOW_ID:0:7}
+#          aws-region: $AWS_DEFAULT_REGION
+#          wait: true
+#          requires:
+#            - undeploy-application
