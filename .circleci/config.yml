@@ -144,8 +144,8 @@ workflows:
             - "build-docker-image"
       - aws-ecr/build-and-push-image:
           name: build-and-push-image-ecr
-          account-url: 641364284129.dkr.ecr.us-east-1.amazonaws.com/eks_orb_capstone_demo_project
-          region: $AWS_DEFAULT_REGION
+          account-url: AWS_ECR_ACCOUNT_URL
+          region: AWS_DEFAULT_REGION
           repo: eks_orb_capstone_demo_project
           tag: ${CIRCLE_SHA1}
           #dockerfile: ~/project/Dockerfile
