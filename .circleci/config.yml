@@ -57,8 +57,8 @@ jobs:
       parameters:
         cluster-name:
           description: |
-          Name of the EKS cluster
-          type: string
+            Name of the EKS cluster
+            type: string
       steps:
         - checkout
         - aws-eks/install-aws-iam-authenticator:
