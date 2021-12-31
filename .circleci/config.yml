@@ -142,20 +142,20 @@ workflows:
       - push-docker-image:
           requires:
             - "build-docker-image"
-#      - aws-ecr/build-and-push-image:
-#          name: build-and-push-image-ecr
-#          account-url: AWS_ECR_ACCOUNT_URL
-#          region: AWS_DEFAULT_REGION
-#          repo: eks_orb_capstone_project
-#          tag: ${CIRCLE_SHA1}
+      - aws-ecr/build-and-push-image:
+          name: build-and-push-image-ecr
+          account-url: 641364284129.dkr.ecr.us-east-1.amazonaws.com/eks_orb_capstone_demo_project
+          region: $AWS_DEFAULT_REGION
+          repo: eks_orb_capstone_demo_project
+          tag: ${CIRCLE_SHA1}
           #dockerfile: ~/project/Dockerfile
           #path: ~/project/
       - aws-eks/create-cluster:
           cluster-name: eks-orb-capstone-project-deployment-${CIRCLE_WORKFLOW_ID:0:7}
           aws-region: $AWS_DEFAULT_REGION
           requires:
-#            - build-and-push-image-ecr
-             - push-docker-image 
+            - build-and-push-image-ecr
+#             - push-docker-image 
       - deploy-application:
           cluster-name: eks-orb-capstone-project-deployment-${CIRCLE_WORKFLOW_ID:0:7}
           aws-region: $AWS_DEFAULT_REGION
