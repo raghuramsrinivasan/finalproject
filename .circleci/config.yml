@@ -61,6 +61,24 @@ jobs:
           type: string
       steps:
         - checkout
+        - run:
+            name: Inatall eksctl
+            command: |
+              if which eksctl > /dev/null; then
+              echo "eksctl is already installed"
+              exit 0
+              fi
+
+              mkdir -p eksctl_download
+              curl --silent --location --retry 5 "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" \
+                | tar xz -C eksctl_download
+              chmod +x eksctl_download/eksctl
+              SUDO=""
+              if [ $(id -u) -ne 0 ] && which sudo > /dev/null ; then
+                SUDO="sudo"
+              fi
+              $SUDO mv eksctl_download/eksctl /usr/local/bin/
+              rmdir eksctl_download
         - aws-eks/install-aws-iam-authenticator:
             release-tag: ''
         - aws-eks/create-cluster:
@@ -70,7 +88,7 @@ jobs:
             node-type: t2.small
             nodes-max: 2
             ssh-access: false
-            ssh-public-key: ''          
+            ssh-public-key: 'udacity-fresh-working-key'          
     deploy-application:
       executor: aws-eks/python3
       parameters:
@@ -99,7 +117,10 @@ jobs:
             aws-region: << parameters.aws-region >>
         - kubernetes/create-or-update-resource:
             resource-file-path: "deployments/deployment.yml"
-            resource-name: deployment/capstone
+            resource-name: deployment/capstonedemo
+        - kubernetes/create-or-update-resource:
+            resource-file-path: "deployments/service.yml"
+            resource-name: deployment/capstonedemo    
 
     test-application:
         executor: aws-eks/python3
