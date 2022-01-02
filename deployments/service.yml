@@ -4,7 +4,7 @@ metadata:
   name: capstonedemo-service
 #  namespace: eks-capstone-ns
   labels:
-    app: capstonedemo
+    app: capstonedemo-service
 spec:
   type: LoadBalancer
   selector:

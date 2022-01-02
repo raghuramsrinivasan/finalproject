@@ -121,7 +121,7 @@ jobs:
             resource-name: deployment/capstonedemo
         - kubernetes/create-or-update-resource:
             resource-file-path: "deployments/service.yml"
-            resource-name: deployment/capstonedemo    
+            resource-name: Service/capstonedemo-service    
 
     test-application:
         executor: aws-eks/python3
@@ -148,8 +148,10 @@ jobs:
           - run:
               name: Wait for service to be ready
               command: |
+                kubectl describe pod posts
                 kubectl get pods
                 kubectl get services
+                
     undeploy-application:
       executor: aws-eks/python3
       parameters:
