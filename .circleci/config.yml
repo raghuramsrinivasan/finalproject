@@ -148,9 +148,9 @@ jobs:
           - run:
               name: Wait for service to be ready
               command: |
-                kubectl describe pod posts
                 kubectl get pods
                 kubectl get services
+                kubectl describe pods
                 
     undeploy-application:
       executor: aws-eks/python3
