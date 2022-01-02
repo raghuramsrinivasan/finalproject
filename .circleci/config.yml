@@ -1,229 +1,65 @@
-version: 2.1
+jobs:
+  create-deployment:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+    steps:
+      - checkout
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+          install-kubectl: true
+      - kubernetes/create-or-update-resource:
+          get-rollout-status: true
+          resource-file-path: bluedeployment.json
+          resource-name: deployment/blue
+  create-service:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+    steps:
+      - checkout
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+          install-kubectl: true
+      - kubernetes/create-or-update-resource:
+          resource-file-path: blueservice.json
+          resource-name: service/bluegreenlb
+  create-small-cluster:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+    steps:
+      - checkout
+      - aws-eks/install-aws-iam-authenticator:
+          release-tag: ''
+      - aws-eks/create-cluster:
+          cluster-name: << parameters.cluster-name >>
+          skip-kubectl-install: false
+          verbose: 3
+          node-type: t2.small
+          nodes-max: 2
+          ssh-access: false
+          ssh-public-key: ''
 
 orbs:
-  aws-cli: circleci/aws-cli@2.0.3
   aws-eks: circleci/aws-eks@1.1.0
-  aws-ecr: circleci/aws-ecr@7.0.0
-  kubernetes: circleci/kubernetes@0.12.0
-
-
-jobs:
-    run-lint:
-      docker:
-        - image: circleci/node:13.8.0
-      steps:
-        - checkout
-        - run:
-            name: install dependencies
-            command: |
-              sudo wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64
-              sudo chmod +x /bin/hadolint
-        - run:
-            name: Run Lint
-            command: |
-              hadolint Dockerfile
-    build-docker-image:
-      docker:
-        - image: circleci/node:13.8.0
-      steps:
-        - checkout
-
-        - setup_remote_docker:
-            version: 19.03.13
-
-        - run:
-            name: Build Docker Image
-            command: |
-              export TAG=v${CIRCLE_BUILD_NUM}
-              export IMAGE_NAME=capstonedemo
-              docker build -t sraghuraman27/$IMAGE_NAME:$TAG .
-    push-docker-image:
-      docker:
-        - image: circleci/node:13.8.0
-      steps:
-        - checkout
-        - setup_remote_docker:
-            version: 19.03.13
-        - run:
-            name: Push Docker Image to Docker Hub
-            command: |
-              export TAG=v${CIRCLE_BUILD_NUM}
-              export IMAGE_NAME=capstonedemo
-              docker build -t sraghuraman27/$IMAGE_NAME:$TAG .
-              docker login -u sraghuraman27 -p Raghu!6224 
-              docker push sraghuraman27/$IMAGE_NAME:$TAG
-    create-small-cluster:
-      executor: aws-eks/python3
-      parameters:
-        cluster-name:
-          description: |
-            Name of the EKS cluster
-          type: string
-      steps:
-        - checkout
-        - run:
-            name: Inatall eksctl
-            command: |
-              if which eksctl > /dev/null; then
-              echo "eksctl is already installed"
-              exit 0
-              fi
-
-              mkdir -p eksctl_download
-              curl --silent --location --retry 5 "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz"
-              ls -lrt
-              tar xvf eksctl_$(uname -s)_amd64.tar.gz -C eksctl_download
-              ls -lrt
-              pwd  
-              chmod +x eksctl_download/eksctl 
-              SUDO=""
-              if [ $(id -u) -ne 0 ] && which sudo > /dev/null ; then
-                SUDO="sudo"
-              fi
-              $SUDO mv eksctl_download/eksctl /usr/local/bin/
-              rmdir eksctl_download
-        - aws-eks/install-aws-iam-authenticator:
-            release-tag: ''
-        - aws-eks/create-cluster:
-            cluster-name: << parameters.cluster-name >>
-            skip-kubectl-install: false
-            verbose: 3
-            node-type: t2.small
-            nodes-max: 2
-            ssh-access: false
-            ssh-public-key: 'udacity-fresh-working-key'          
-    deploy-application:
-      executor: aws-eks/python3
-      parameters:
-        cluster-name:
-          description: |
-            Name of the EKS cluster
-          type: string
-        docker-image-name:
-          description: |
-            Name of the docker image to be deployed
-          type: string
-        version-info:
-          description: |
-            App version information
-          type: string
-        aws-region:
-          description: |
-            AWS region
-          type: string
-          default: "us-east-1"
-      steps:
-        - checkout
-        - aws-eks/update-kubeconfig-with-authenticator:
-            cluster-name: << parameters.cluster-name >>
-            install-kubectl: true
-            aws-region: << parameters.aws-region >>
-        - kubernetes/create-or-update-resource:
-            resource-file-path: "deployments/deployment.yml"
-            resource-name: deployment/capstonedemo
-        - kubernetes/create-or-update-resource:
-            resource-file-path: "deployments/service.yml"
-            resource-name: deployment/capstonedemo    
-
-    test-application:
-        executor: aws-eks/python3
-        parameters:
-          cluster-name:
-            description: |
-              Name of the EKS cluster
-            type: string
-          aws-region:
-            description: |
-              AWS region
-            type: string
-            default: ""
-          expected-version-info:
-            description: |
-              Expected app version (this is used for testing that the
-              correct version has been deployed)
-            type: string
-        steps:
-          - aws-eks/update-kubeconfig-with-authenticator:
-              cluster-name: << parameters.cluster-name >>
-              install-kubectl: true
-              aws-region: << parameters.aws-region >>
-          - run:
-              name: Wait for service to be ready
-              command: |
-                kubectl get pods
-                kubectl get services
-    undeploy-application:
-      executor: aws-eks/python3
-      parameters:
-        cluster-name:
-          description: |
-            Name of the EKS cluster
-          type: string
-        aws-region:
-          description: |
-            AWS region
-          type: string
-          default: ""
-      steps:
-        - aws-eks/update-kubeconfig-with-authenticator:
-            cluster-name: << parameters.cluster-name >>
-            install-kubectl: true
-            aws-region: << parameters.aws-region >>
-        - kubernetes/delete-resource:
-            resource-types: "deployment,service"
-            label-selector: "app=capstone"
-            wait: true
-        - run:
-            name: Check on pod status
-            command: |
-              kubectl get pods
+  kubernetes: circleci/kubernetes@0.4.0
+version: 2.1
 workflows:
-  default:
+  deployment:
     jobs:
-      - run-lint
-      - build-docker-image
-      - push-docker-image:
-          requires:
-            - "build-docker-image"
-#      - aws-ecr/build-and-push-image:
-#          name: build-and-push-image-ecr
-#          account-url: AWS_ECR_ACCOUNT_URL
-#          region: AWS_DEFAULT_REGION
-#          repo: eks_orb_capstone_demo_project
-#          tag: ${CIRCLE_SHA1}
-          #dockerfile: ~/project/Dockerfile
-          #path: ~/project/
       - create-small-cluster:
-          cluster-name: eks-orb-capstone-project-deployment-${CIRCLE_WORKFLOW_ID:0:7}
-          requires:
-            - "push-docker-image"
-#      - aws-eks/create-cluster:
-#          cluster-name: eks-orb-capstone-project-deployment-${CIRCLE_WORKFLOW_ID:0:7}
-#        aws-region: $AWS_DEFAULT_REGION
-#          requires:
-#            - build-and-push-image-ecr
-#             - push-docker-image 
-      - deploy-application:
-          cluster-name: eks-orb-capstone-project-deployment-${CIRCLE_WORKFLOW_ID:0:7}
-          aws-region: $AWS_DEFAULT_REGION
-          docker-image-name: "${AWS_ECR_ACCOUNT_URL}/eks_orb_capstone_project:${CIRCLE_SHA1}"
-          version-info: "${CIRCLE_SHA1}"
+          cluster-name: eks-demo-deployment
+      - create-service:
+          cluster-name: eks-demo-deployment
           requires:
             - create-small-cluster
-      - test-application:
-          cluster-name: eks-orb-capstone-project-deployment-${CIRCLE_WORKFLOW_ID:0:7}
-          aws-region: $AWS_DEFAULT_REGION
-          expected-version-info: "${CIRCLE_SHA1}"
-          requires:
-            - deploy-application
-#      - undeploy-application:
-#          cluster-name: eks-orb-capstone-project-deployment-${CIRCLE_WORKFLOW_ID:0:7}
-#          aws-region: $AWS_DEFAULT_REGION
-#          requires:
-#            - test-application
-#      - aws-eks/delete-cluster:
-#          cluster-name: eks-orb-capstone-project-deployment-${CIRCLE_WORKFLOW_ID:0:7}
-#          aws-region: $AWS_DEFAULT_REGION
-#          wait: true
-#          requires:
-#            - undeploy-application
