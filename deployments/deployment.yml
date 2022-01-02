@@ -15,8 +15,8 @@ spec:
         app: capstonedemo
     spec:
       containers:
-      - name: app
-        image: sraghuraman27/capstonedemo
+      - name: capstonedemo
+        image: sraghuraman27/capstonedemo:latest
         resources:
           requests:
             cpu: 100m
