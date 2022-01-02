@@ -70,7 +70,7 @@ jobs:
               fi
 
               mkdir -p eksctl_download
-              curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /eksctl_download
+              curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C eksctl_download
               ls -lrt
               pwd  
               chmod +x eksctl_download/eksctl 
