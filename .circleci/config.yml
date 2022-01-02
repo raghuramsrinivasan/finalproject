@@ -70,12 +70,12 @@ jobs:
               fi
 
               mkdir -p eksctl_download
-              curl --silent --location --retry 5 "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" \
-                | tar xvf
+              curl --silent --location --retry 5 "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz"
+              ls -lrt
+              tar xvf eksctl_$(uname -s)_amd64.tar.gz -C eksctl_download
               ls -lrt
               pwd  
-              chmod +x eksctl
-              sudo mv eksctl eksctl_download   
+              chmod +x eksctl_download/eksctl 
               SUDO=""
               if [ $(id -u) -ne 0 ] && which sudo > /dev/null ; then
                 SUDO="sudo"
