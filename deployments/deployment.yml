@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: capstonedemo
-        image: sraghuraman27/capstonedemo:latest
+        image: sraghuraman27/capstonedemo:tag
         resources:
           requests:
             cpu: 100m
