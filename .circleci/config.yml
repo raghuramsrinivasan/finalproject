@@ -49,9 +49,9 @@ jobs:
             command: |
               export TAG=v${CIRCLE_BUILD_NUM}
               export IMAGE_NAME=capstonedemo
-              docker build -t sraghuraman27/$IMAGE_NAME:$TAG .
+              docker build -t sraghuraman27/$IMAGE_NAME .
               docker login -u sraghuraman27 -p Raghu!6224 
-              docker push sraghuraman27/$IMAGE_NAME:$TAG
+              docker push sraghuraman27/$IMAGE_NAME
     create-small-cluster:
       executor: aws-eks/python3
       parameters:
